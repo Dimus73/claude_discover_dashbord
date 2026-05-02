@@ -85,7 +85,42 @@ cd client && CI=true npm run build
 
 **Оба**
 - Комментарии только там, где поведение неочевидно.
-- Нет TypeScript, нет тестов — проект учебный.
+- Нет TypeScript.
+
+## Тестирование
+
+**Инструменты**
+- Сервер: Jest + supertest — `server/src/*.test.js`
+- Клиент: react-scripts test + @testing-library/react — `client/src/**/*.test.js`
+
+**Правило:** любой новый код сопровождается тестами. Компонент, эндпоинт, утилита — всё покрывается.
+
+**Запуск**
+```bash
+# Сервер (после npm install --save-dev jest supertest в server/)
+cd server && npm test
+
+# Клиент (jest встроен в CRA, доп. установка не нужна)
+cd client && CI=true npm test -- --watchAll=false
+
+# Всё вместе с покрытием
+/test
+```
+
+**Структура сервера для supertest**
+
+`index.js` только запускает процесс; `app.js` экспортирует `app` без `listen` — иначе supertest откроет реальный порт:
+
+```
+server/src/
+├── app.js          # const app = express(); ... module.exports = app;
+├── index.js        # require('./app').listen(PORT, ...)
+└── app.test.js     # const app = require('./app'); request(app).get(...)
+```
+
+Когда пишешь тесты сервера — убедись что `app.js` существует. Если нет — создай его, вынеся `app` из `index.js`.
+
+---
 
 ## Что важно не сломать
 
