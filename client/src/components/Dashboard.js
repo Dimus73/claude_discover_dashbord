@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import MetricCard from './MetricCard';
 import CpuChart from './CpuChart';
+import MemoryChart from './MemoryChart';
+import RequestsChart from './RequestsChart';
 
 const POLL_INTERVAL = 3000;
 const BASE_URL = 'http://localhost:3001';
@@ -59,6 +61,8 @@ export default function Dashboard() {
         ))}
       </div>
       <CpuChart data={history} />
+      <MemoryChart data={history} />
+      <RequestsChart data={history} />
     </div>
   );
 }
