@@ -1,23 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import MetricCard from './MetricCard';
+import CpuChart from './CpuChart';
 
 const POLL_INTERVAL = 3000;
-const API_URL = 'http://localhost:3001/api/metrics';
+const BASE_URL = 'http://localhost:3001';
 
 export default function Dashboard() {
   const [metrics, setMetrics] = useState(null);
+  const [history, setHistory] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function fetchMetrics() {
+    async function fetchAll() {
       try {
-        const res = await fetch(API_URL);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+        const [metricsRes, historyRes] = await Promise.all([
+          fetch(`${BASE_URL}/api/metrics`),
+          fetch(`${BASE_URL}/api/metrics/history`),
+        ]);
+        if (!metricsRes.ok) throw new Error(`HTTP ${metricsRes.status}`);
+        const [metricsData, historyData] = await Promise.all([
+          metricsRes.json(),
+          historyRes.json(),
+        ]);
         if (!cancelled) {
-          setMetrics(data);
+          setMetrics(metricsData);
+          setHistory(historyData);
           setError(null);
         }
       } catch (err) {
@@ -25,8 +34,8 @@ export default function Dashboard() {
       }
     }
 
-    fetchMetrics();
-    const timer = setInterval(fetchMetrics, POLL_INTERVAL);
+    fetchAll();
+    const timer = setInterval(fetchAll, POLL_INTERVAL);
     return () => {
       cancelled = true;
       clearInterval(timer);
@@ -49,6 +58,7 @@ export default function Dashboard() {
           <MetricCard key={c.id} title={c.title} value={c.value} unit={c.unit} />
         ))}
       </div>
+      <CpuChart data={history} />
     </div>
   );
 }
